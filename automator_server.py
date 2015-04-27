@@ -34,7 +34,7 @@ class AutomatorServer(object):
             print('[*] Simultaneous experiments limit set to %d.' % limit)
             self.limit_sem = Semaphore(limit)
 
-    def push_experiments(self, path, no_run=False):
+    def push_experiments(self, path, replace=False, no_run=False):
         data = yaml.load(file(path, 'r'))
         root_path = data['root_path']
         experiments = preprocessing.preprocess_experiments(data)
@@ -45,6 +45,7 @@ class AutomatorServer(object):
             h = make_hash({'model': e['model'], 'solver': e['solver']})
             e['hash'] = h
             e['no_run'] = no_run
+            e['replace'] = replace
 
         self.cleanup()
 
@@ -58,16 +59,20 @@ class AutomatorServer(object):
 
     def terminate(self):
         print('[*] Terminating server...')
-        for w in self.workers:
-            w.shutdown()
-        self.join_workers()
+        self.kill_all()
         print('    Done')
-
         self.pyro_daemon.shutdown()
 
     def kill(self, worker_idx):
         self.workers[worker_idx].shutdown()
         self.workers[worker_idx].join()
+        self.cleanup()
+
+    def kill_all(self):
+        for w in self.workers:
+            w.shutdown()
+        self.join_workers()
+        self.cleanup()
 
     def join_workers(self):
         for w in self.workers:

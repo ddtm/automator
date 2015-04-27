@@ -150,9 +150,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Client for the automator.')
     parser.add_argument('-e', '--experiments', default='')
     parser.add_argument('-n', '--no-run', action='store_true', default=False)
+    parser.add_argument('-r', '--replace', action='store_true', default=False)
     parser.add_argument('-l', '--list', action='store_true', default=False)
     parser.add_argument('-i', '--interval', type=int, default=0)
     parser.add_argument('-k', '--kill', type=int, default=-1)
+    parser.add_argument('-a', '--kill-all', action='store_true', default=False)
     parser.add_argument('-p', '--port', type=int, default=-1)
     parser.add_argument('-t', '--terminate-server', action='store_true', default=False)
 
@@ -170,13 +172,17 @@ if __name__ == '__main__':
 
     if args.experiments:
         experiments_path = os.path.abspath(os.path.expanduser(args.experiments))
-        automator_server.push_experiments(experiments_path, args.no_run)
+        automator_server.push_experiments(
+            experiments_path, args.replace, args.no_run)
 
     if args.list:
         curses.wrapper(display_info, automator_server, args.interval)
 
     if args.kill >= 0:
         automator_server.kill(args.kill)
+
+    if args.kill_all:
+        automator_server.kill_all()
 
     if args.terminate_server:
         automator_server.terminate()      
