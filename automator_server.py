@@ -34,7 +34,7 @@ class AutomatorServer(object):
             print('[*] Simultaneous experiments limit set to %d.' % limit)
             self.limit_sem = Semaphore(limit)
 
-    def push_experiments(self, path, replace=False, no_run=False):
+    def push_experiments(self, path, replace_mode=0, no_run=False):
         data = yaml.load(file(path, 'r'))
         root_path = data['root_path']
         experiments = preprocessing.preprocess_experiments(data)
@@ -45,7 +45,7 @@ class AutomatorServer(object):
             h = make_hash({'model': e['model'], 'solver': e['solver']})
             e['hash'] = h
             e['no_run'] = no_run
-            e['replace'] = replace
+            e['replace_mode'] = replace_mode
 
         self.cleanup()
 
@@ -94,8 +94,11 @@ class AutomatorServer(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='The automator server.')
-    parser.add_argument('-r', '--caffe-root', required=True)
-    parser.add_argument('-l', '--limit', type=int, default=0)
+    parser.add_argument('-r', '--caffe-root', required=True,
+                        help='full path to the Caffe distribution')
+    parser.add_argument('-l', '--limit', type=int, default=0,
+                        help='maximum number of simultaneously conducted '
+                             'experiments (default: 0)')
 
     args = parser.parse_args()
 

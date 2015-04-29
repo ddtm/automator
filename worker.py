@@ -29,7 +29,7 @@ class Worker(mp.Process):
         self.caffe_root = experiment['caffe_root']
         self.custom_command = experiment['command']
         self.no_run = experiment['no_run']
-        self.replace = experiment['replace']
+        self.replace_mode = experiment['replace_mode']
 
         num_watched = len(experiment['watch'])
         self.watched_dict = dict(zip(experiment['watch'], range(num_watched))) 
@@ -92,7 +92,10 @@ class Worker(mp.Process):
         self.logs_path = os.path.join(self.path, 'logs')
         self.scripts_path = os.path.join(self.path, 'scripts')
 
-        if not self.replace and os.path.exists(self.path):
+        if self.replace_mode == 1 and os.path.exists(self.protos_path):
+            self.prepare_protos()
+
+        if self.replace_mode in [0, 1] and os.path.exists(self.path):
             self.snapshots_path = self.get_snapshots_directory()
             return
 
